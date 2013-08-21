@@ -29,7 +29,7 @@ function issuu_menu() {
 
   $items = array();
 
-  $items['admin/settings/issuu/global'] = array(
+  $items['admin/config/services/issuu'] = array(
     'title' => 'Issuu Global settings',
     'description' => 'Modify the information related to the global account of the site',
     'page callback' => 'drupal_get_form',
@@ -42,7 +42,7 @@ function issuu_menu() {
 }
 
 /**
- * Form callback for "admin/settings/issuu/global":
+ * Form callback for "admin/config/services/issuu":
  */
 function issuu_admin() {
   $form = array();
@@ -84,7 +84,7 @@ function issuu_admin() {
 }
 
 /**
- * Validation callback for "admin/settings/issuu/global":
+ * Validation callback for "admin/config/services/issuu":
  */
 function issuu_admin_validate($form, &$form_state) {
   $issuu_global_apikey = $form_state['values']['issuu_global_apikey'];
@@ -98,10 +98,10 @@ function issuu_admin_validate($form, &$form_state) {
   if (strlen($issuu_global_apisecret) != 32) {
     form_set_error('issuu_global_apisecret', t('You must enter a valid issuu.com API secret(32 characters).'));
   }
-  if ( $issuu_global_width<=0 || $issuu_global_width!=round($issuu_global_width) ) {
+  if ( $issuu_global_width <= 0 || $issuu_global_width != round($issuu_global_width) ) {
     form_set_error('issuu_global_width', t('Width should be a positive integer number.'));
   }
-  if ( $issuu_global_height<=0 || $issuu_global_height!=round($issuu_global_height)  ) {
+  if ( $issuu_global_height <= 0 || $issuu_global_height != round($issuu_global_height)  ) {
     form_set_error('issuu_global_height', t('Height should be a positive integer number.'));
   }
 }
