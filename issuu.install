@@ -1,29 +1,27 @@
 <?php
 
 /**
- * Implementation of hook_requirements().
+ * Implements hook_requirements() to check the PHP cURL extension.
  */
 function issuu_requirements($phase) {
+  $requirements = array();
+
   if ($phase == 'install') {
     $t = get_t();
+    $requirements['curl'] = array(
+      'title' => $t('cURL extension'),
+    );
 
-    $severity = REQUIREMENT_OK;
-    if (!extension_loaded('curl')) {
-      $severity = REQUIREMENT_ERROR;
+    if (extension_loaded('curl')) {
+      $requirements['curl']['severity'] = REQUIREMENT_OK;
     }
-    $curl_requirement = array(
-      'title' => $t('Curl extension'),
-      'description' => $t('You need to enable curl php extension to use issuu module.'),
-      'severity' => $severity,
-      );
-    return array('curl' => $curl_requirement);
+    else {
+      $requirements['curl']['severity'] = REQUIREMENT_ERROR;
+      $requirements['curl']['description'] = $t('You need to enable cURL PHP extension to use issuu module.');
+    }
   }
-}
 
-/**
- * Implementation of hook_install().
- */
-function issuu_install() {
+  return $requirements;
 }
 
 /**
@@ -34,18 +32,4 @@ function issuu_uninstall() {
    variable_del('issuu_global_apisecret');
    variable_del('issuu_global_width');
    variable_del('issuu_global_height');
-}
-
-/**
- * Implementation of hook_enable().
- */
-function issuu_enable() {
-  drupal_load('module', 'content');
-}
-
-/**
- * Implementation of hook_disable().
- */
-function issuu_disable() {
-  drupal_load('module', 'content');
 }
