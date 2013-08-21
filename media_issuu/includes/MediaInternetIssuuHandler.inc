@@ -10,42 +10,48 @@
  * @see hook_media_internet_providers()
  */
 class MediaInternetIssuuHandler extends MediaInternetBaseHandler {
+  
   /**
    * Parse URL from Issuu.
    *
    * Issuu has following URL format:
-   * http://issuu.com/user/docs/
+   * http://issuu.com/username/docs/docName?e=configid
    */
   public function parse($embed_code) {
-    $patterns = array(
-      '@issuu\.com/webembed/.*\?.*documentId=([0-9]{12}-\w{32})@i',
-    );
-    // Parse patterns[0]: embed code.
-    watchdog('media_issuu patterns[0]', $patterns[0]);
-    preg_match($patterns[0], $embed_code, $matches);
-    if (isset($matches[1])) {
-      $request = 'http://search.issuu.com/api/2_0/document?q=documentId:' . $matches[1];
-      $response = drupal_http_request($request);
-      dsm($response);
-      watchdog('media_issuu response', '<pre>' . print_r($response, TRUE) . '</pre>');
-      $decodedresponse = drupal_json_decode($response->data);
-      watchdog('media_issuu decodedresponse', '<pre>' . print_r($decodedresponse, TRUE) . '</pre>');
-      dsm($decodedresponse);
-      if ($decodedresponse['response']['numFound'] === 1) {
-        return file_stream_wrapper_uri_normalize('issuu://document' . '/' . $decodedresponse['response']['docs'][0]['username'] . '/docs/' .  $decodedresponse['response']['docs'][0]['docname']);
-      }
-      else {
-        return FALSE;
-      }
-    }
+    // $patterns = array(
+      // '@issuu\.com/.*\?.*documentId=([0-9]{12}-\w{32})@i',
+    // );
+    // // Parse patterns[0]: embed code.
+    // watchdog('media_issuu patterns[0]', $patterns[0]);
+    // preg_match($patterns[0], $embed_code, $matches);
+    // if (isset($matches[1])) {
+      // $request = 'http://search.issuu.com/api/2_0/document?q=documentId:' . $matches[1];
+      // $response = drupal_http_request($request);
+      // dsm($response);
+      // watchdog('media_issuu response', '<pre>' . print_r($response, TRUE) . '</pre>');
+      // $decodedresponse = drupal_json_decode($response->data);
+      // watchdog('media_issuu decodedresponse', '<pre>' . print_r($decodedresponse, TRUE) . '</pre>');
+      // dsm($decodedresponse);
+      // if ($decodedresponse['response']['numFound'] === 1) {
+        // return file_stream_wrapper_uri_normalize('issuu://document' . '/' . $decodedresponse['response']['docs'][0]['username'] . '/docs/' .  $decodedresponse['response']['docs'][0]['docname']);
+      // }
+      // else {
+        // return FALSE;
+      // }
+    // }
     // Parse patterns[1]: url.
-    $parts = parse_url($embed_code);
-    $pathparts = explode('/', $parts['path']);
-    if (count($pathparts) === 4 && isset($pathparts[1]) && $pathparts[2] === 'docs' && isset($parts['host']) && $parts['host'] === 'issuu.com') {
-      return file_stream_wrapper_uri_normalize('issuu://document' . $parts['path']);
+    $pattern = '@issuu\.com/([^/"\&\? ]+)/docs/([^/"\&\? ]+)\?e=(\d{7}/\d{7})@i';
+
+    watchdog('media_issuu patterns[0]', $pattern);
+    preg_match($pattern, $embed_code, $matches);
+
+    if (isset($matches[1])) {
+      return file_stream_wrapper_uri_normalize('issuu://document/' . $matches[1] . '/docs/' .  $matches[2] . '/configid/' . rawurlencode($matches[3]));
     }
+
     return FALSE;
   }
+
   /**
    * Get file object.
    */
@@ -55,6 +61,7 @@ class MediaInternetIssuuHandler extends MediaInternetBaseHandler {
     dsm($file);
     return $file;
   }
+
   /**
    * Claim parsed embedCode.
    */
@@ -63,6 +70,7 @@ class MediaInternetIssuuHandler extends MediaInternetBaseHandler {
       return TRUE;
     }
   }
+
   /**
    * Save file.
    */
@@ -72,3 +80,4 @@ class MediaInternetIssuuHandler extends MediaInternetBaseHandler {
     return $file;
   }
 }
+
