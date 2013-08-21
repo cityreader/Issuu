@@ -163,8 +163,11 @@ function issuu_api_unique_document_name() {
 
 /**
  * Get an indication whether the specified status code indicates success.
- * @param $status_code The status code to evaluate.
- * @return Returns TRUE if the $status_code indicates success, otherwise FALSE.
+ *
+ * @param $status_code
+ *   The status code to evaluate.
+ * @return
+ *   Returns TRUE if the $status_code indicates success, otherwise FALSE.
  */
 function issuu_api_succeeded($status_code) {
   return !issuu_api_failed($status_code);
@@ -172,8 +175,11 @@ function issuu_api_succeeded($status_code) {
 
 /**
  * Get an indication whether the specified status code indicates failure.
- * @param type $status_code The status code to evaluate.
- * @return Returns TRUE if the $status_code indicates an error, otherwise FALSE.
+ *
+ * @param $status_code
+ *   The status code to evaluate.
+ * @return
+ *   Returns TRUE if the $status_code indicates an error, otherwise FALSE.
  */
 function issuu_api_failed($status_code) {
   // All status codes which indicate failure are numeric and have a numerical
@@ -183,8 +189,11 @@ function issuu_api_failed($status_code) {
 
 /**
  * Get the error message for the specified status code.
- * @param $status_code The status code.
- * @return Returns the error message if the $status_code indicates failure,
+ *
+ * @param
+ *   $status_code The status code.
+ * @return
+ *   Returns the error message if the $status_code indicates failure,
  * otherwise NULL.
  */
 function issuu_api_error_message($status_code = NULL) {
@@ -219,9 +228,12 @@ function issuu_api_error_message($status_code = NULL) {
 
 /**
  * Get the error message for the specified conversion status code.
- * @param $status_code The conversion status code.
- * @return Returns the conversion error message if the $status_code indicates
- * failure, otherwise NULL.
+ *
+ * @param $status_code
+ *   The conversion status code.
+ * @return
+ *   Returns the conversion error message if the $status_code indicates
+ *  failure, otherwise NULL.
  */
 function issuu_api_conversion_error_message($status_code = NULL) {
   $error_messages = &drupal_static(__FUNCTION__);
@@ -254,8 +266,11 @@ function issuu_api_conversion_error_message($status_code = NULL) {
 
 /**
  * Get an indication whether the specified document is converted.
- * @param array $document The document information.
- * @return Returns TRUE if the document is converted, otherwise FALSE.
+ *
+ * @param $document
+ *   The document information.
+ * @return
+ *   Returns TRUE if the document is converted, otherwise FALSE.
  */
 function issuu_api_document_active(array $document) {
   return isset($document['state']) && $document['state'] == 'A';
@@ -263,8 +278,11 @@ function issuu_api_document_active(array $document) {
 
 /**
  * Get an indication whether the specified document is being converted.
- * @param array $document The document information.
- * @return Returns TRUE if the document is being converted, otherwise FALSE.
+ *
+ * @param $document
+ *   The document information.
+ * @return
+ *   Returns TRUE if the document is being converted, otherwise FALSE.
  */
 function issuu_api_document_converting(array $document) {
   return isset($document['state']) && $document['state'] == 'P';
@@ -272,8 +290,11 @@ function issuu_api_document_converting(array $document) {
 
 /**
  * Get an indication whether the specified document failed conversion.
- * @param array $document The document information.
- * @return Returns TRUE if the document failed conversion, otherwise FALSE.
+ *
+ * @param
+ *   $document The document information.
+ * @return
+ *   Returns TRUE if the document failed conversion, otherwise FALSE.
  */
 function issuu_api_document_failed(array $document) {
   return isset($document['state']) && $document['state'] == 'F';
@@ -281,9 +302,12 @@ function issuu_api_document_failed(array $document) {
 
 /**
  * Get the conversion error message for the specified document.
- * @param array $document The document information.
- * @return Returns the conversion error message if the document failed
- * conversion, otherwise NULL.
+ *
+ * @param
+ *   $document The document information.
+ * @return
+ *   Returns the conversion error message if the document failed
+ *   conversion, otherwise NULL.
  */
 function issuu_api_document_error_message(array $document) {
   // Check if the document failed conversion and that the errorCode is defined.
@@ -300,10 +324,14 @@ function issuu_api_document_error_message(array $document) {
 
 /**
  * Load the specified bookmark.
- * @param type $bookmark_id The bookmark id.
- * @param array $settings Issuu API settings.
- * @return Returns the bookmark if successful, otherwise an error code is
- * returned.
+ *
+ * @param $bookmark_id
+ *   The bookmark id.
+ * @param $settings
+ *   Issuu API settings.
+ * @return
+ *   Returns the bookmark if successful, otherwise an error code is
+ *   returned.
  */
 function issuu_api_bookmark_load($bookmark_id, array $settings) {
   try {
@@ -323,10 +351,14 @@ function issuu_api_bookmark_load($bookmark_id, array $settings) {
 
 /**
  * Load the specified document.
- * @param $document_name The document name.
- * @param array $settings Issuu API settings.
- * @return Returns the document if successful, otherwise an error code is
- * returned.
+ *
+ * @param $document_name
+ *   The document name.
+ * @param $settings
+ *   Issuu API settings.
+ * @return
+ *   Returns the document if successful, otherwise an error code is
+ *   returned.
  */
 function issuu_api_document_load($document_name, array $settings) {
   try {
@@ -346,10 +378,14 @@ function issuu_api_document_load($document_name, array $settings) {
 
 /**
  * Load the specified folder.
- * @param $folder_id The folder id.
- * @param array $settings Issuu API settings.
- * @return Returns the folder if successful, otherwise an error code is
- * returned.
+ *
+ * @param $folder_id
+ *   The folder id.
+ * @param $settings
+ *   Issuu API settings.
+ * @return
+ *   Returns the folder if successful, otherwise an error code is
+ *   returned.
  */
 function issuu_api_folder_load($folder_id, array $settings) {
   try {
@@ -366,3 +402,4 @@ function issuu_api_folder_load($folder_id, array $settings) {
     return $ex->getCode();
   }
 }
+

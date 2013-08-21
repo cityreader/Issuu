@@ -507,6 +507,4 @@ class IssuuRequestParams {
     }
     return FALSE;
   }
-
 }
-
