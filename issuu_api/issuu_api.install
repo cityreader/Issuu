@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Defines the requirements for the issuu_api module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function issuu_api_requirements($phase) {
+  $requirements = array();
+  // Ensure translation don't break at install time.
+  $t = get_t();
+  // Check for php curl extension during install phase.
+  switch ($phase) {
+    case 'install':
+      $requirements['curl'] = array(
+        'title' => $t('cURL extension'),
+        'description' => $t('You need to enable the cURL php extension to use the Issuu API module.'),
+        'severity' => (extension_loaded('curl') ? REQUIREMENT_OK : REQUIREMENT_ERROR),
+      );
+      break;
+  }
+
+  return $requirements;
+}

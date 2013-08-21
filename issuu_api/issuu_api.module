@@ -1,0 +1,358 @@
+<?php
+
+//------------------------------------------------------------------------------
+// Const definitions.
+//------------------------------------------------------------------------------
+
+/**
+ * List of supported client types.
+ */
+define('ISSUU_API_CLIENT_API', 'IssuuApiClient');
+define('ISSUU_API_CLIENT_SEARCH', 'IssuuSearchClient');
+
+/**
+ * List of all supported Issuu APIs.
+ */
+define('ISSUU_API_BOOKMARK', 'issuu_api.bookmark');
+define('ISSUU_API_DOCUMENT', 'issuu_api.document');
+define('ISSUU_API_FOLDER', 'issuu_api.folder');
+define('ISSUU_API_SEARCH', 'issuu_api.search');
+
+/**
+ * List of error codes.
+ */
+define('ISSUU_API_ERROR_GENERAL_FAULT', 0);
+define('ISSUU_API_ERROR_AUTHENTICATION_REQUIRED', 9);
+define('ISSUU_API_ERROR_INVALID_API_KEY', 10);
+define('ISSUU_API_ERROR_BAD_SIGNATURE', 11);
+define('ISSUU_API_ERROR_MISSING_REQUIRED_FIELD', 200);
+define('ISSUU_API_ERROR_INVALID_FIELD_FORMAT', 201);
+define('ISSUU_API_ERROR_FILE_TO_LARGE', 205);
+define('ISSUU_API_ERROR_FOLDER_NAME_EXISTS', 261);
+define('ISSUU_API_ERROR_DOCUMENT_NOT_FOUND', 300);
+define('ISSUU_API_ERROR_DOCUMENT_NAME_EXISTS', 302);
+define('ISSUU_API_ERROR_DOCUMENT_CONVERTING', 307);
+define('ISSUU_API_ERROR_DOCUMENT_FAILED', 308);
+define('ISSUU_API_ERROR_DOCUMENT_PAGE_NOT_FOUND', 311);
+
+/**
+ * List of conversion error codes.
+ */
+define('ISSUU_API_CONVERSION_ERROR_MAX_ATTEMPS', 100);
+define('ISSUU_API_CONVERSION_ERROR_MALFORMED', 200);
+define('ISSUU_API_CONVERSION_ERROR_INVALID', 201);
+define('ISSUU_API_CONVERSION_ERROR_ENCRYPTED', 202);
+define('ISSUU_API_CONVERSION_ERROR_COMPLEX', 204);
+define('ISSUU_API_CONVERSION_ERROR_GENERAL', 205);
+define('ISSUU_API_CONVERSION_ERROR_DOWNLOAD_FAILED', 207);
+define('ISSUU_API_CONVERSION_ERROR_DOWNLOAD_TO_LARGE', 209);
+define('ISSUU_API_CONVERSION_ERROR_UNKNOWN_FORMAT', 210);
+define('ISSUU_API_CONVERSION_ERROR_UNSUPPORTED_FORMAT', 211);
+define('ISSUU_API_CONVERSION_ERROR_DOWNLOAD_NOT_FOUND', 212);
+define('ISSUU_API_CONVERSION_ERROR_UNKNOWN', 999);
+
+//------------------------------------------------------------------------------
+// Module API functions.
+//------------------------------------------------------------------------------
+
+/**
+ * Include the specified Issuu API.
+ * @param $issuu_api The Issuu API to include.
+ * @return Returns TRUE if the specified Issuu API was included, otherwise
+ * FALSE.
+ */
+function issuu_api_include($issuu_api) {
+  // Retrieve the static cached $issuu_api_included states.
+  $issuu_api_included = &drupal_static(__FUNCTION__, array());
+  // Validate the $issuu_api argument.
+  if (!empty($issuu_api) && is_string($issuu_api)) {
+    // Get a value indicating whether the $issuu_api is already included.
+    $is_included = isset($issuu_api_included[$issuu_api]);
+    // If not already included then try to include the $issuu_api.
+    if (!$is_included && module_load_include('inc', 'issuu_api', "api/{$issuu_api}") !== FALSE) {
+      // Mark the $issuu_api as included.
+      $is_included = $issuu_api_included[$issuu_api] = TRUE;
+    }
+    // Return the included state for the specified $issuu_api.
+    return $is_included;
+  }
+  // Default failure behavior.
+  return FALSE;
+}
+
+/**
+ * Create a client for the specified client type.
+ * @param $client_type The type of client to create.
+ * @param $settings The client settings.
+ * @return IssuuClient Returns an instance of IssuuClient if operation was
+ * successful, otherwise NULL.
+ */
+function issuu_api_create_client($client_type, array $settings = NULL) {
+  $client_obj = NULL;
+  // Validate $client_type.
+  if (isset($client_type) && is_string($client_type) && class_exists($client_type)) {
+    // Retrieve setting is set else create empty array.
+    $settings = isset($settings) ? $settings : array();
+    // Create new client type instance and pass the settings.
+    $client_obj = new $client_type($settings);
+  }
+  return $client_obj;
+}
+
+/**
+ * Create a container for the request parameters.
+ * @param $params Initial request parameters.
+ * @return IssuuRequestParams Returns an instance of IssuuRequestParams.
+ */
+function issuu_api_create_request_parameters(array $params = NULL) {
+  return new IssuuRequestParams($params);
+}
+
+/**
+ * Create a search query builder.
+ * @param $operator The operator to use when building the query. Valid values
+ * are: 'AND' and 'OR'.
+ * @return IssuuSearchQueryBuilder Returns an instance of
+ * IssuuSearchQueryBuilder.
+ */
+function issuu_api_create_query_builder($operator = NULL) {
+  return new IssuuSearchQueryBuilder($operator);
+}
+
+/**
+ * Create a search subquery.
+ * @param $operator The operator to use when building the subquery. Valid values
+ * are: 'AND' and 'OR'.
+ * @return IssuuSearchQuery Returns an instance of IssuuSearchQuery.
+ */
+function issuu_api_create_subquery($operator = NULL) {
+  return new IssuuSearchQuery($operator);
+}
+
+//------------------------------------------------------------------------------
+// Module helper functions.
+//------------------------------------------------------------------------------
+
+/**
+ * Generate a unique Issuu document name.
+ * @return Returns a unique document name.
+ */
+function issuu_api_unique_document_name() {
+  // Check if the guid function exists.
+  if (function_exists('com_create_guid') === TRUE) {
+    // Generate guid.
+    $guid = trim(com_create_guid(), '{}');
+  }
+  else {
+    // Custom implementation used as fallback.
+    // See: http://php.net/manual/en/function.com-create-guid.php
+    $guid = sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
+  }
+  return drupal_strtolower($guid);
+}
+
+/**
+ * Get an indication whether the specified status code indicates success.
+ * @param $status_code The status code to evaluate.
+ * @return Returns TRUE if the $status_code indicates success, otherwise FALSE.
+ */
+function issuu_api_succeeded($status_code) {
+  return !issuu_api_failed($status_code);
+}
+
+/**
+ * Get an indication whether the specified status code indicates failure.
+ * @param type $status_code The status code to evaluate.
+ * @return Returns TRUE if the $status_code indicates an error, otherwise FALSE.
+ */
+function issuu_api_failed($status_code) {
+  // All status codes which indicate failure are numeric and have a numerical
+  // value higher then zero.
+  return isset($status_code) && is_numeric($status_code) && $status_code > 0;
+}
+
+/**
+ * Get the error message for the specified status code.
+ * @param $status_code The status code.
+ * @return Returns the error message if the $status_code indicates failure,
+ * otherwise NULL.
+ */
+function issuu_api_error_message($status_code = NULL) {
+  $error_messages = &drupal_static(__FUNCTION__);
+  // Check if the $error_messages is not already initialized.
+  if (!isset($error_messages)) {
+    $error_messages = array(
+      ISSUU_API_ERROR_GENERAL_FAULT => t('General fault.'),
+      ISSUU_API_ERROR_AUTHENTICATION_REQUIRED => t('Authentication required.'),
+      ISSUU_API_ERROR_INVALID_API_KEY => t('Invalid API key.'),
+      ISSUU_API_ERROR_BAD_SIGNATURE => t('Bad signature.'),
+      ISSUU_API_ERROR_MISSING_REQUIRED_FIELD => t('Missing required field.'),
+      ISSUU_API_ERROR_INVALID_FIELD_FORMAT => t('Invalid field format.'),
+      ISSUU_API_ERROR_FILE_TO_LARGE => t('Uploaded files cannot exceed 100 MB.'),
+      ISSUU_API_ERROR_FOLDER_NAME_EXISTS => t('Folder name exists for user.'),
+      ISSUU_API_ERROR_DOCUMENT_NOT_FOUND => t('Document not found.'),
+      ISSUU_API_ERROR_DOCUMENT_NAME_EXISTS => t('Document name exists for user.'),
+      ISSUU_API_ERROR_DOCUMENT_CONVERTING => t('Document still converting.'),
+      ISSUU_API_ERROR_DOCUMENT_FAILED => t('Document failed conversion.'),
+      ISSUU_API_ERROR_DOCUMENT_PAGE_NOT_FOUND => t('Document page not found.'),
+    );
+  }
+  // Check if the $status_code indicates failure and that an error message
+  // exists.
+  if (issuu_api_failed($status_code) && isset($error_messages[$status_code])) {
+    return $error_messages[$status_code];
+  }
+  // Default fallback if the $status_code is not found or does not indicate
+  // failure.
+  return NULL;
+}
+
+/**
+ * Get the error message for the specified conversion status code.
+ * @param $status_code The conversion status code.
+ * @return Returns the conversion error message if the $status_code indicates
+ * failure, otherwise NULL.
+ */
+function issuu_api_conversion_error_message($status_code = NULL) {
+  $error_messages = &drupal_static(__FUNCTION__);
+  // Check if the $error_messages is not already initialized.
+  if (!isset($error_messages)) {
+    $error_messages = array(
+      ISSUU_API_CONVERSION_ERROR_MAX_ATTEMPS => t('Maximum number of conversion attempts reached.'),
+      ISSUU_API_CONVERSION_ERROR_MALFORMED => t('Input document is malformed.'),
+      ISSUU_API_CONVERSION_ERROR_INVALID => t('Input document contains an invalid number of pages.'),
+      ISSUU_API_CONVERSION_ERROR_ENCRYPTED => t('Input document is encrypted.'),
+      ISSUU_API_CONVERSION_ERROR_COMPLEX => t('Input document is too complex.'),
+      ISSUU_API_CONVERSION_ERROR_GENERAL => t('General conversion error.'),
+      ISSUU_API_CONVERSION_ERROR_DOWNLOAD_FAILED => t('Download of file failed.'),
+      ISSUU_API_CONVERSION_ERROR_DOWNLOAD_TO_LARGE => t('Download of file failed, file is to large.'),
+      ISSUU_API_CONVERSION_ERROR_UNKNOWN_FORMAT => t('Unrecognized file format.'),
+      ISSUU_API_CONVERSION_ERROR_UNSUPPORTED_FORMAT => t('File format is not supported. Must be one of the following types: pdf, ppt, doc, odt, wpd, sxw, rtf, odp or sxi.'),
+      ISSUU_API_CONVERSION_ERROR_DOWNLOAD_NOT_FOUND => t('Download of file failed, not found.'),
+      ISSUU_API_CONVERSION_ERROR_UNKNOWN => t('Unknown error.'),
+    );
+  }
+  // Check if the $status_code is numeric and that an error message
+  // exists.
+  if (isset($status_code) && is_numeric($status_code) && isset($error_messages[$status_code])) {
+    return $error_messages[$status_code];
+  }
+  // Default fallback if the $status_code is not found or does not indicate
+  // failure.
+  return NULL;
+}
+
+/**
+ * Get an indication whether the specified document is converted.
+ * @param array $document The document information.
+ * @return Returns TRUE if the document is converted, otherwise FALSE.
+ */
+function issuu_api_document_active(array $document) {
+  return isset($document['state']) && $document['state'] == 'A';
+}
+
+/**
+ * Get an indication whether the specified document is being converted.
+ * @param array $document The document information.
+ * @return Returns TRUE if the document is being converted, otherwise FALSE.
+ */
+function issuu_api_document_converting(array $document) {
+  return isset($document['state']) && $document['state'] == 'P';
+}
+
+/**
+ * Get an indication whether the specified document failed conversion.
+ * @param array $document The document information.
+ * @return Returns TRUE if the document failed conversion, otherwise FALSE.
+ */
+function issuu_api_document_failed(array $document) {
+  return isset($document['state']) && $document['state'] == 'F';
+}
+
+/**
+ * Get the conversion error message for the specified document.
+ * @param array $document The document information.
+ * @return Returns the conversion error message if the document failed
+ * conversion, otherwise NULL.
+ */
+function issuu_api_document_error_message(array $document) {
+  // Check if the document failed conversion and that the errorCode is defined.
+  if (issuu_api_document_failed($document) && isset($document['errorCode'])) {
+    // Get the conversion error message for the given document error code.
+    return issuu_api_conversion_error_message($document['errorCode']);
+  }
+  return NULL;
+}
+
+//------------------------------------------------------------------------------
+// Issuu load functions.
+//------------------------------------------------------------------------------
+
+/**
+ * Load the specified bookmark.
+ * @param type $bookmark_id The bookmark id.
+ * @param array $settings Issuu API settings.
+ * @return Returns the bookmark if successful, otherwise an error code is
+ * returned.
+ */
+function issuu_api_bookmark_load($bookmark_id, array $settings) {
+  try {
+    // Construct request parameters.
+    $parameters = issuu_api_create_request_parameters();
+    $parameters->addStringParam('bookmarkId', $bookmark_id);
+    // Create client and request bookmark info.
+    return issuu_api_create_client(ISSUU_API_CLIENT_API, $settings)->issuu_bookmark_update($parameters);
+  }
+  catch (Exception $ex) {
+    // Log exception to watchdog.
+    watchdog_exception('issuu_api', $ex);
+    // Return the error code.
+    return $ex->getCode();
+  }
+}
+
+/**
+ * Load the specified document.
+ * @param $document_name The document name.
+ * @param array $settings Issuu API settings.
+ * @return Returns the document if successful, otherwise an error code is
+ * returned.
+ */
+function issuu_api_document_load($document_name, array $settings) {
+  try {
+    // Construct request parameters.
+    $parameters = issuu_api_create_request_parameters();
+    $parameters->addStringParam('name', $document_name);
+    // Create client and request document information.
+    return issuu_api_create_client(ISSUU_API_CLIENT_API, $settings)->issuu_document_update($parameters);
+  }
+  catch (Exception $ex) {
+    // Log exception to watchdog.
+    watchdog_exception('issuu_api', $ex);
+    // Return the error code.
+    return $ex->getCode();
+  }
+}
+
+/**
+ * Load the specified folder.
+ * @param $folder_id The folder id.
+ * @param array $settings Issuu API settings.
+ * @return Returns the folder if successful, otherwise an error code is
+ * returned.
+ */
+function issuu_api_folder_load($folder_id, array $settings) {
+  try {
+    // Construct request parameters.
+    $parameters = issuu_api_create_request_parameters();
+    $parameters->addStringParam('folderId', $folder_id);
+    // Create client and request folder information.
+    return issuu_api_create_client(ISSUU_API_CLIENT_API, $settings)->issuu_folder_update($parameters);
+  }
+  catch (Exception $ex) {
+    // Log exception to watchdog.
+    watchdog_exception('issuu_api', $ex);
+    // Return the error code.
+    return $ex->getCode();
+  }
+}

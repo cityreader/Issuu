@@ -1,0 +1,9 @@
+name = Media: Issuu.com
+description = Provides Issuu.com support to the Media module.
+package = "Media"
+core = 7.x
+files[] = includes/MediaIssuuStreamWrapper.inc
+files[] = includes/MediaInternetIssuuHandler.inc
+files[] = includes/MediaIssuuStyles.inc
+dependencies[] = media_internet
+dependencies[] = issuu_api

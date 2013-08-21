@@ -1,0 +1,14 @@
+name = Issuu API
+description = Provides the functionality to interact with the Issuu service.
+package = Issuu
+core = 7.x
+php = 5.2
+; Module dependencies
+dependencies[] = http_client
+; Client classes
+files[] = clients/IssuuApiClient.inc
+files[] = clients/IssuuClient.inc
+files[] = clients/IssuuSearchClient.inc
+; Include files
+files[] = includes/IssuuApiFormatter.inc
+files[] = includes/IssuuSearchQuery.inc

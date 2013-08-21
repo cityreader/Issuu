@@ -1,0 +1,5 @@
+name = Issuu
+description = Integration with Issuu.
+package = Other
+core = 7.x
+dependencies[] = swftools_api
