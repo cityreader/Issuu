@@ -2,4 +2,3 @@ name = Issuu
 description = Integration with Issuu.
 package = Issuu
 core = 7.x
-dependencies[] = issuu_api
