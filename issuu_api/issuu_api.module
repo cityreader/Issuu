@@ -57,8 +57,11 @@ define('ISSUU_API_CONVERSION_ERROR_UNKNOWN', 999);
 
 /**
  * Include the specified Issuu API.
- * @param $issuu_api The Issuu API to include.
- * @return Returns TRUE if the specified Issuu API was included, otherwise
+ * 
+ * @param $issuu_api
+ *   The Issuu API to include.
+ * @return
+ *   Returns TRUE if the specified Issuu API was included, otherwise
  * FALSE.
  */
 function issuu_api_include($issuu_api) {
@@ -82,10 +85,14 @@ function issuu_api_include($issuu_api) {
 
 /**
  * Create a client for the specified client type.
- * @param $client_type The type of client to create.
- * @param $settings The client settings.
- * @return IssuuClient Returns an instance of IssuuClient if operation was
- * successful, otherwise NULL.
+ * 
+ * @param $client_type
+ *   The type of client to create.
+ * @param $settings
+ *   The client settings.
+ * @return
+ *   IssuuClient Returns an instance of IssuuClient if operation was
+ *   successful, otherwise NULL.
  */
 function issuu_api_create_client($client_type, array $settings = NULL) {
   $client_obj = NULL;
@@ -101,8 +108,11 @@ function issuu_api_create_client($client_type, array $settings = NULL) {
 
 /**
  * Create a container for the request parameters.
- * @param $params Initial request parameters.
- * @return IssuuRequestParams Returns an instance of IssuuRequestParams.
+ * 
+ * @param $params
+ *   Initial request parameters.
+ * @return
+ *   IssuuRequestParams Returns an instance of IssuuRequestParams.
  */
 function issuu_api_create_request_parameters(array $params = NULL) {
   return new IssuuRequestParams($params);

@@ -7,6 +7,7 @@
 
 /**
  * Base type for all Issuu related service interaction.
+ * 
  * @abstract
  */
 abstract class IssuuClient {
@@ -235,9 +236,12 @@ class IssuuRequestParams {
 
   /**
    * Add the specified request parameter with the corresponding value.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value. Arrays are converted to a comma-
-   * seperated list.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value. Arrays are converted to a comma-
+   *   seperated list.
    */
   public final function addParam($name, $value) {
     // Only add request parameters with a valid name and value.
@@ -253,7 +257,9 @@ class IssuuRequestParams {
 
   /**
    * Remove the specified request parameter.
-   * @param $name The request parameter name.
+   *
+   * @param $name
+   *   The request parameter name.
    */
   public final function removeParam($name) {
     // Only remove the request parameter if it has a valid name.
@@ -268,8 +274,11 @@ class IssuuRequestParams {
 
   /**
    * Add an absolute URL request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param
+   *   $value The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addUrlParam($name, $value) {
@@ -285,8 +294,11 @@ class IssuuRequestParams {
 
   /**
    * Add a boolean string request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addBooleanStringParam($name, $value) {
@@ -305,8 +317,11 @@ class IssuuRequestParams {
 
   /**
    * Add a boolean integer request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addBooleanIntegerParam($name, $value) {
@@ -325,8 +340,11 @@ class IssuuRequestParams {
 
   /**
    * Add an integer request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addIntegerParam($name, $value) {
@@ -342,8 +360,11 @@ class IssuuRequestParams {
 
   /**
    * Add a string request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addStringParam($name, $value) {
@@ -354,8 +375,11 @@ class IssuuRequestParams {
 
   /**
    * Add an array of string request parameters.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addStringListParam($name, $value) {
@@ -374,8 +398,11 @@ class IssuuRequestParams {
 
   /**
    * Add a timestamp request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addTimestampParam($name, $value) {
@@ -391,8 +418,11 @@ class IssuuRequestParams {
 
   /**
    * Add a file request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
    * @throws InvalidArgumentException
    */
   public final function addFileParam($name, $value) {
@@ -408,9 +438,13 @@ class IssuuRequestParams {
 
   /**
    * Add a enumeration request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
-   * @param $allowed_values The allowed enumeration values.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
+   * @param $allowed_values
+   *   The allowed enumeration values.
    * @throws InvalidArgumentException
    */
   public final function addEnumParam($name, $value, array $allowed_values) {
@@ -421,9 +455,13 @@ class IssuuRequestParams {
 
   /**
    * Add a enumeration request parameter.
-   * @param $name The request parameter name.
-   * @param $value The request parameter value.
-   * @param $allowed_values The allowed enumeration values.
+   *
+   * @param $name
+   *   The request parameter name.
+   * @param $value
+   *   The request parameter value.
+   * @param $allowed_values
+   *   The allowed enumeration values.
    * @throws InvalidArgumentException
    */
   public final function addEnumListParam($name, $value, array $allowed_values) {
@@ -446,8 +484,10 @@ class IssuuRequestParams {
 
   /**
    * Get the request parameters.
-   * @return Returns an associative array containing the request parameters,
-   * keyed by the request parameter name.
+   * 
+   * @return
+   *   Returns an associative array containing the request parameters,
+   *   keyed by the request parameter name.
    */
   public final function getRequestParameters() {
     return (array) $this->_request_params;
@@ -455,8 +495,11 @@ class IssuuRequestParams {
 
   /**
    * Get an indication whether the specified request parameter is present.
-   * @param $name The request parameter name.
-   * @return Returns TRUE if the request parameter is present, otherwise FALSE.
+   * 
+   * @param $name
+   *   The request parameter name.
+   * @return
+   *   Returns TRUE if the request parameter is present, otherwise FALSE.
    */
   public final function hasRequestParameter($name) {
     if (isset($name) && is_string($name)) {
@@ -466,3 +509,4 @@ class IssuuRequestParams {
   }
 
 }
+
