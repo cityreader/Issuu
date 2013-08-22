@@ -24,20 +24,41 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
    *   Array of properties.
    */
   public static function getIssuuProperties($parameters) {
-    $request = 'http://search.issuu.com/api/2_0/document?q=username:' . drupal_encode_path($parameters['document'] . ' +docname:' . $parameters['docs']);
-    $response = drupal_http_request($request);
-    $decodedresponse = drupal_json_decode($response->data);
-    // Check documentID for extra security.
-    if (preg_match('#^[0-9]{12}\-[0-9a-f]{32}$#', $decodedresponse['response']['docs'][0]['documentId'], $matches)) {
-      return $decodedresponse['response']['docs'][0];
+    $properties = array();
+
+    $parameters = array(
+      'pageSize' => 30,
+      'responseParams' => 'name,documentId',
+      'resultOrder' => 'desc',
+      'startIndex' => 0,
+    );
+    
+    do {
+      if ($result = issuu_api_issuu_documents_list($parameters)) {
+        foreach ($result['_content'] as $document) {
+          if ($document['document']['name'] == $parameters['docs']) {
+            $properties = $document['document'];
+            break;
+          }
+        }
+        $parameters['startIndex'] += 30;
+      }
+      else {
+        break;
+      }
     }
+    while ($properties || $result['more'] == FALSE);
+
+    return $properties;
   }
+
   /**
    * Get target.
    */
   protected function getTarget($uri) {
     return FALSE;
   }
+
   /**
    * Transform URL.
    */
@@ -50,8 +71,9 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
    */
   public function getOriginalThumbnailPath() {
     $issuu_properties = self::getIssuuProperties($this->parameters);
-    return 'http://image.issuu.com/' . $issuu_properties['documentId'] . '/jpg/page_1_thumb_medium.jpg';
+    return 'http://image.issuu.com/' . $issuu_properties['documentId'] . '/jpg/page_1_thumb_large.jpg';
   }
+
   /**
    * Get local thumbnail path.
    */
@@ -65,3 +87,4 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
     return $local_path;
   }
 }
+

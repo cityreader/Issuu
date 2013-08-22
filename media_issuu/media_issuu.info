@@ -6,4 +6,4 @@ files[] = includes/MediaIssuuStreamWrapper.inc
 files[] = includes/MediaInternetIssuuHandler.inc
 files[] = includes/MediaIssuuStyles.inc
 dependencies[] = media_internet
-dependencies[] = issuu_api
+dependencies[] = issuu
