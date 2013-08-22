@@ -26,7 +26,7 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
   public static function getIssuuProperties($parameters) {
     $properties = array();
 
-    $parameters = array(
+    $api_parameters = array(
       'pageSize' => 30,
       'responseParams' => 'name,documentId',
       'resultOrder' => 'desc',
@@ -34,7 +34,7 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
     );
     
     do {
-      if ($result = issuu_api_issuu_documents_list($parameters)) {
+      if ($result = issuu_api_issuu_documents_list($api_parameters)) {
         foreach ($result['_content'] as $document) {
           if ($document['document']['name'] == $parameters['docs']) {
             $properties = $document['document'];
@@ -42,6 +42,9 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
           }
         }
         $parameters['startIndex'] += 30;
+        dpm($result);
+        dpm($parameters);
+        dpm($properties);
       }
       else {
         break;

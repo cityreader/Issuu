@@ -97,6 +97,8 @@ function issuu_api_issuu_documents_list($parameters = NULL) {
 }
 
 class IssuuApi {
+  private $cache = array();
+  
   public function __construct() {
     
   }
@@ -178,16 +180,22 @@ class IssuuApi {
     return $signature;
   }
 
-  public function request($type = 'get', $url, $parameters = NULL) {   
-    $type = strtolower($type);
-    if ($type == 'post') {
-      $response = $this->post($url, $parameters);
+  public function request($type = 'get', $url, $parameters = NULL) {
+    if (isset($this->cache[$url])) {
+      $response = $this->cache[$url];
     }
     else {
-      $response = $this->get($url);
-      $response = $response->data;
+      $type = strtolower($type);
+      if ($type == 'post') {
+        $response = $this->post($url, $parameters);
+      }
+      else {
+        $response = $this->get($url);
+        $response = $response->data;
+      }
+      $this->cache[$url] = $response;
     }
-
+    
     return $this->processResponse($response);
   }
 
