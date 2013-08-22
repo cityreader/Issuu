@@ -10,15 +10,9 @@ function issuu_requirements($phase) {
     $t = get_t();
     $requirements['curl'] = array(
       'title' => $t('cURL extension'),
+      'severity' => extension_loaded('curl') ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+      'description' => $t('You need to enable cURL PHP extension to use issuu module.'),
     );
-
-    if (extension_loaded('curl')) {
-      $requirements['curl']['severity'] = REQUIREMENT_OK;
-    }
-    else {
-      $requirements['curl']['severity'] = REQUIREMENT_ERROR;
-      $requirements['curl']['description'] = $t('You need to enable cURL PHP extension to use issuu module.');
-    }
   }
 
   return $requirements;

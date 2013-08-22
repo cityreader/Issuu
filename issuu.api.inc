@@ -91,38 +91,45 @@ function issuu_get_languages() {
   return $predefined;
 }
 
-class IssuuClient {
-  
+function issuu_api_issuu_documents_list($parameters = NULL) {
+  $issuuapi = new IssuuApi();
+  return $result = $issuuapi->call(ISSUU_DOCUMENTS_LIST, $parameters);
 }
 
-abstract class IssuuApi {
-  private $action = NULL;
-  private $url;
-  private $parameters;
-  
-  function __construct($parameters = NULL) {
-    if ($this->action == NULL) {
-      return FALSE;
+class IssuuApi {
+  public function __construct() {
+    
+  }
+
+  public function call($action, $parameters = NULL) {
+    $class = str_replace(' ', '', ucwords(strtolower(str_replace('.', ' ', $action))));
+    $class = 'IssuuApiMethod_' . $class;
+
+    if (class_exists($class)) {
+      return $this->process(new $class(), $parameters);
+    }
+    return FALSE;
+  }
+
+  public function process(IssuuApiMethod $method_obj, $parameters) {
+    $parameters = $method_obj->setParameters($parameters);
+    $url = $this->prepareUrl($parameters);
+        dpm($url);
+    if ($response = $this->request($method_obj->getRequestType(), $url, $parameters)) {
+      return $method_obj->processResponse($response);
     }
 
-    $default_parameters = array(
-      'action' => $this->action,
-    );
-    $parameters = array_merge($default_parameters, (array)$parameters);
-    $url = issuu_prepare_url($parameters);
-    $result = drupal_http_request($url);
-    //TODO make some useful output
-    var_dump($result);
+    return FALSE;
   }
 
   /**
-   * Generate the basic url
+   * Generate the basic URL
    */
   public function prepareUrl(&$parameters, $upload = FALSE) {
     $parameters['apiKey'] = variable_get('issuu_global_apikey', '');
     $parameters['format'] = 'json';
   
-    issuu_sign_parameters($parameters);
+    $this->signRequest($parameters);
   
     $get_array = array();
     foreach ($parameters as $key => $val) {
@@ -134,33 +141,8 @@ abstract class IssuuApi {
     if ($upload) {
       return array(ISSUU_URI_UPLOAD, $get_string);
     }
-  
+
     return sprintf('%s?%s', $base, $get_string);
-  }
-
-  public function processResponse($response) {
-    
-  }
-
-  public function generateSignature() {
-    //1.  Sort request parameters alphabetically (e.g. foo=1, bar=2, baz=3 sorts to bar=2, baz=3, foo=1)
-    ksort($this->parameters);
-  
-    //2. Concatenate in order your API secret key and request name-value pairs (e.g. SECRETbar2baz3foo1)
-    $secret = variable_get('issuu_global_apisecret', '');
-    $signature = $secret;
-    foreach ($this->parameters as $k => $v) {
-      // file is not part of standard parameters, not documented anywhere, but in this way this works!
-      if ($k == 'file') {
-        continue;
-      }
-      $signature .= $k . $v;
-    }
-  
-    //3. Calculate the signature as the MD5 hash of this string
-    $signature = md5($signature);
-
-    return $signature;
   }
 
   /**
@@ -168,32 +150,50 @@ abstract class IssuuApi {
    *
    * @see http://issuu.com/services/api/signingrequests.html
    */
-  public function sign_parameters(&$parameters) {
+  public function signRequest(&$parameters) {
     $signature = '';
-  
+
     //1.  Sort request parameters alphabetically (e.g. foo=1, bar=2, baz=3 sorts to bar=2, baz=3, foo=1)
     ksort($parameters);
-  
+
     //2. Concatenate in order your API secret key and request name-value pairs (e.g. SECRETbar2baz3foo1)
     $secret = variable_get('issuu_global_apisecret', '');
     $signature = $secret;
     foreach ($parameters as $k => $v) {
       // file is not part of standard parameters, not documented anywhere, but in this way this works!
-      if ($k == 'file') continue;
+      if ($k == 'file') {
+        continue;
+      }
       $signature .= $k . $v;
     }
-  
+
     //3. Calculate the signature as the MD5 hash of this string
     $signature = md5($signature);
-  
+
     //4. Include the signature parameter in the request encoded as lowercase HEX
     $signature = drupal_strtolower($signature);
-  
+
     $parameters['signature'] = $signature;
+
+    return $signature;
+  }
+
+  public function request($type = 'get', $url, $parameters = NULL) {   
+    $type = strtolower($type);
+    if ($type == 'post') {
+      $response = $this->post($url, $parameters);
+    }
+    else {
+      $response = $this->get($url);
+      $response = $response->data;
+    }
+
+    return $this->processResponse($response);
   }
 
   public function get($url) {
-    $result = drupal_http_request($url);
+    $response = drupal_http_request($url);
+    return $response;
   }
 
   public function post($url, $parameters) {
@@ -209,17 +209,81 @@ abstract class IssuuApi {
     
     return $response;
   }
+
+  public function processResponse($response) {
+    try {
+      $rsp = drupal_json_decode($response);
+    }
+    catch (Exception $e) {
+      watchdog_exception('issuu', 'Decoding json failed. One possible reason is that issuu.com is down now. The convert failed with exception !exception.', array('!exception' => $e));
+      return FALSE;
+    }
+
+    if (isset($rsp['rsp'])) {
+      $rsp = $rsp['rsp'];
+      if ($rsp['stat'] == 'ok') {
+        return $rsp['_content']['result'];
+      }
+      elseif ($rsp['stat'] == 'fail') {
+        $this->logError($rsp);
+      }
+    }
+    else {
+      watchdog('issuu', 'Unknown error: @response.', array('@response' => $response), WATCHDOG_ERROR);
+    }
+
+    return FALSE;
+  }
+
+  public function logError($rsp) {
+    $error = $rsp['_content']['error'];
+    watchdog('issuu', 'Issuu request failed, error code: %code, message: %message', array('%code'=>$error['code'], '%message'=>$error['message']), WATCHDOG_ERROR);
+  }
 }
 
-class IssuuApiDocumentList extends IssuuApi {
-  private $action = ISSUU_DOCUMENTS_LIST;
-  
+abstract class IssuuApiMethod {
 
+  protected $action;
+
+  protected $parameters;
+
+  protected $request_type = 'get';
+
+  public function setParameters($parameters = NULL) {
+    $default_parameters = $this->defaultParameters();
+    $default_parameters['action'] = $this->action;
+    $parameters = array_merge($default_parameters, $parameters);
+    $this->parameters = $parameters;
+    
+    return $parameters;
+  }
+
+  public function defaultParameters() {
+    return array();
+  }
+
+  public function processResponse($response) {
+    return $response;
+  }
+
+  public function getRequestType() {
+    return $this->request_type;
+  }
 }
 
-class IssuuApiDocumentUpload extends IssuuApi {
-  private $action = ISSUU_DOCUMENT_UPLOAD;
-  
+class IssuuApiMethod_IssuuDocumentsList extends IssuuApiMethod {
+  public function __construct() {
+     $this->action = ISSUU_DOCUMENTS_LIST;
+  }
+}
+
+class IssuuApiMethod_IssuuDocumentsUpload extends IssuuApiMethod {
+
+  public function __construct() {
+     $this->action = ISSUU_DOCUMENT_UPLOAD;
+     $this->$request_type = 'post';
+  }
+
   function issuu_api_issuu_document_upload($file_location, $parameters=NULL) {
     //TODO make sure file exist
     $default_parameters = array(
@@ -241,43 +305,15 @@ class IssuuApiDocumentUpload extends IssuuApi {
     return $response;
   }
 
-  public function processResponse($response, &$doc_metadata) {
-    try {
-      $rsp = drupal_json_decode($response);
-    }
-    catch (Exception $e) {
-      watchdog('issuu', 'Decoding json failed. One possible reason is that issuu.com is down now. The convert failed with exception !exception.', array('!exception' => $e), WATCHDOG_ERROR);
-      return FALSE;
-    }
-    $rsp = $rsp['rsp'];
-  
-    if ((string)$rsp['stat'] == 'ok') {
-      foreach ($rsp['_content']['result']['_content'] as $document) {
-        // get doc values
-        $attributes = array('username', 'name', 'documentId', 'title', 'access', 'state', 'contentFlag', 'category', 'type', 'orgDocType', 'orgDocName', 'origin', 'language', 'rating', 'ratingsAllowed', 'commentCount', 'bookmarkCount', 'viewCount', 'pageCount', 'ep', 'publishDate');
-        foreach ($attributes as $attr) {
-          $doc_metadata[$attr] = (string)$document[$attr];
-        }
-      }
-    }
-    else { //TODO there's an error, try to log it
-      /*<?xml version="1.0" encoding="UTF-8"? ><rsp stat="fail"><error code="009" message="Authentication required"/></rsp>*/
-      if ((string)$rsp['stat'] == 'fail') {
-        foreach ($rsp->error as $error) {
-          $attributes = array('code', 'message');
-          $message = '';
-          foreach ($attributes as $attr) {
-            $message .= sprintf('attribute: (%s) value: (%s)', $attr, (string)$error[$attr]);
-          }
-          watchdog('issuu', 'error: !message.', array('!message' => $message), WATCHDOG_ERROR);
-        }
-      }
-      else {
-        watchdog('issuu', 'Unknown error: @response.', array('@response' => $response), WATCHDOG_ERROR);
-      }
-      return FALSE;
-    }
-  
-    return TRUE;
-  }
+  // public function processResponse($response, &$doc_metadata) {
+    // foreach ($rsp['_content']['result']['_content'] as $document) {
+      // // get doc values
+      // $attributes = array('username', 'name', 'documentId', 'title', 'access', 'state', 'contentFlag', 'category', 'type', 'orgDocType', 'orgDocName', 'origin', 'language', 'rating', 'ratingsAllowed', 'commentCount', 'bookmarkCount', 'viewCount', 'pageCount', 'ep', 'publishDate');
+      // foreach ($attributes as $attr) {
+        // $doc_metadata[$attr] = (string)$document[$attr];
+      // }
+    // }
+    // return $response;
+  // }
 }
+

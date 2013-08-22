@@ -27,12 +27,9 @@ function issuu_permission() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function issuu_menu() {
-
-  $items = array();
-
   $items['admin/config/services/issuu'] = array(
     'title' => 'Issuu settings',
     'description' => 'Modify the information related to the global account of the site',
@@ -40,17 +37,30 @@ function issuu_menu() {
     'page arguments' => array('issuu_admin'),
     'access arguments' => array('administer issuu configuration'),
     'type' => MENU_NORMAL_ITEM,
-   );
-
+  );
+  $items['issuu_test'] = array(
+    'title' => 'Issuu test',
+    'page callback' => 'issuu_test',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
   return $items;
+}
+
+function issuu_test() {
+  $parameters = array(
+    'pageSize' => 10,
+    'responseParams' => 'name,documentId,folders,orgDocName',
+    'resultOrder' => 'desc',
+  );
+  dpm(issuu_api_issuu_documents_list($parameters));
+  return 'hello';
 }
 
 /**
  * Form callback for "admin/config/services/issuu":
  */
 function issuu_admin() {
-  $form = array();
-
   $form['issuu_global_apikey'] = array(
     '#type' => 'textfield',
     '#title' => t('issuu.com API key'),
@@ -59,6 +69,7 @@ function issuu_admin() {
     '#description' => t('The issuu.com API key which is going to be used as the global access API key.'),
     '#required' => TRUE,
   );
+
   $form['issuu_global_apisecret'] = array(
     '#type' => 'textfield',
     '#title' => t('issuu.com API secret'),
@@ -67,6 +78,7 @@ function issuu_admin() {
     '#description' => t('The issuu.com API secret that is neede to calculate the signature of each request.'),
     '#required' => TRUE,
   );
+
   $form['issuu_global_width'] = array(
     '#type' => 'textfield',
     '#title' => t('Embed Width (px)'),
@@ -75,6 +87,7 @@ function issuu_admin() {
     '#description' => t('Width for Page Flip and presentation formatters in pixels.'),
     '#required' => TRUE,
   );
+
   $form['issuu_global_height'] = array(
     '#type' => 'textfield',
     '#title' => t('Embed Height (px)'),
