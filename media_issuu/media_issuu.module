@@ -11,7 +11,8 @@
 /**
  * A registry of variable_get defaults.
  */
-include_once dirname(__FILE__) . '/includes/media_issuu.variables.inc';
+include_once('includes/media_issuu.variables.inc');
+// include_once dirname(__FILE__) . '/includes/media_issuu.variables.inc';
 
 /**
  * Hooks and callbacks for integrating with Styles module for display.
@@ -19,12 +20,14 @@ include_once dirname(__FILE__) . '/includes/media_issuu.variables.inc';
  * this inside a module_exists('styles'). However, is that safe to do in
  * global context? If not, is there any down side to doing it in hook_init()?
  */
-include_once dirname(__FILE__) . '/includes/media_issuu.styles.inc';
+include_once('includes/media_issuu.styles.inc');
+// include_once dirname(__FILE__) . '/includes/media_issuu.styles.inc';
 
 /**
  * Hooks and callbacks for integrating with File Entity module for display.
  */
-include_once dirname(__FILE__) . '/includes/media_issuu.formatters.inc';
+include_once('includes/media_issuu.formatters.inc');
+// include_once dirname(__FILE__) . '/includes/media_issuu.formatters.inc';
 
 /**
  * Implements hook_stream_wrappers().
@@ -63,6 +66,26 @@ function media_issuu_theme($existing, $type, $theme, $path) {
       'path' => $path . '/includes/themes',
       'template' => 'media-issuu-document',
     ),
+    'media_issuu_field_formatter_styles' => array(
+      'variables' => array('element' => NULL, 'style' => NULL),
+      'file' => 'media_issuu.theme.inc',
+      'path' => $path . '/includes/themes',
+    ),
+    'media_issuu_preview_style' => array(
+      'variables' => array('style_name' => NULL),
+      'file' => 'media_issuu.theme.inc',
+      'path' => $path . '/includes/themes',
+    ),
+    'media_issuu_embed' => array(
+      'variables' => array('style_name' => NULL, 'uri' => NULL, 'alt' => NULL, 'title' => NULL),
+      'file' => 'media_issuu.theme.inc',
+      'path' => $path . '/includes/themes',
+    ),
+    'media_issuu_styles' => array(
+      'variables' => array('element' => NULL, 'style' => NULL),
+      'file' => 'media_issuu.theme.inc',
+      'path' => $path . '/includes/themes',
+    ),
   );
 }
 
@@ -81,6 +104,22 @@ function media_issuu_ctools_plugin_api($owner, $api) {
 }
 
 /**
+ * Implements hook_file_mimetype_mapping_alter().
+ *
+ * Regster the document/issuu mimetype.
+ */
+function media_issuu_file_mimetype_mapping_alter(&$mapping) {
+  $mapping['mimetypes'][] = 'document/issuu';
+}
+
+/**
+ * Implements hook_file_default_types_alter().
+ */
+function media_issuu_file_default_types_alter(&$types) {
+  $types['document']->mimetypes[] = 'document/issuu';
+}
+
+/**
  * Implements hook_media_parse().
  *
  * @todo This hook should be deprecated. Refactor Media module to not call it
@@ -96,6 +135,6 @@ function media_issuu_media_parse($embed_code) {
  * Implements hook_media_format_form_prepare_alter().
  */
 function media_issuu_media_format_form_prepare_alter(&$form, &$form_state, $media) {
-  $settings = array('autosubmit' => ($media->type === "other"));
+  $settings = array('autosubmit' => ($media->type === "document"));
   drupal_add_js(array('media_format_form' => $settings), 'setting');
 }

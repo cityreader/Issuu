@@ -1,0 +1,150 @@
+diff --git a/media_issuu/includes/MediaIssuuStyles.inc b/media_issuu/includes/MediaIssuuStyles.inc
+index ca5ea04..af5e84c 100644
+--- a/media_issuu/includes/MediaIssuuStyles.inc
++++ b/media_issuu/includes/MediaIssuuStyles.inc
+@@ -42,6 +42,7 @@ class MediaIssuuStyles extends FileStyles {
+       'height' => $this->getHeight(),
+       'fullscreen' => $this->getFullscreen(),
+     );
++    dsm('foo');
+     $this->setOutput(theme('media_issuu_document', $variables));
+   }
+ }
+diff --git a/media_issuu/includes/media_issuu.formatters.inc b/media_issuu/includes/media_issuu.formatters.inc
+index b0c3a79..07acb7d 100644
+--- a/media_issuu/includes/media_issuu.formatters.inc
++++ b/media_issuu/includes/media_issuu.formatters.inc
+@@ -11,7 +11,7 @@ function media_issuu_file_formatter_info() {
+   $formatters = array();
+   $formatters['media_issuu_document'] = array(
+     'label' => t('Issuu Document'),
+-    'file types' => array('default'),
++    'file types' => array('document'),
+     'default settings' => array(
+       'width' => media_issuu_variable_get('width'),
+       'height' => media_issuu_variable_get('height'),
+@@ -21,7 +21,7 @@ function media_issuu_file_formatter_info() {
+   );
+   $formatters['media_issuu_image'] = array(
+     'label' => t('Issuu Preview Image'),
+-    'file types' => array('default'),
++    'file types' => array('document'),
+     'default settings' => array(
+       'image_style' => '',
+     ),
+diff --git a/media_issuu/includes/media_issuu.styles.inc b/media_issuu/includes/media_issuu.styles.inc
+index 20e3cfd..65cbc0b 100644
+--- a/media_issuu/includes/media_issuu.styles.inc
++++ b/media_issuu/includes/media_issuu.styles.inc
+@@ -45,13 +45,7 @@ function media_issuu_styles_containers() {
+             'styles' => 'media_issuu_styles',
+             'preview' => 'media_issuu_preview_style',
+           ),
+-          'description' => t(
+-            'Issuu Styles will display embedded Issuu documents and thumbnails to your choosing, such as by resizing, setting colors. You can !manage.',
+-            array(
+-              '!manage' => l(
+-                t('manage your Issuu styles here'),
+-                'admin/config/media/media-issuu-styles'))
+-          ),
++          'description' => t('Issuu Styles will display embedded Issuu documents and thumbnails to your choosing, such as by resizing, setting colors. You can !manage.', array('!manage' => l(t('manage your Issuu styles here'),'admin/config/media/media-issuu-styles'))),
+         ),
+       ),
+     ),
+@@ -132,6 +126,7 @@ function media_issuu_styles_styles() {
+       ),
+     ),
+   );
++
+   /* Allow any image style to be applied to the thumbnail. */
+   foreach (image_styles() as $style_name => $image_style) {
+     $styles['file']['containers']['media_issuu']['styles']['issuu_thumbnail_' . $style_name] = array(
+diff --git a/media_issuu/media_issuu.module b/media_issuu/media_issuu.module
+index c652724..a52254f 100644
+--- a/media_issuu/media_issuu.module
++++ b/media_issuu/media_issuu.module
+@@ -11,7 +11,8 @@
+ /**
+  * A registry of variable_get defaults.
+  */
+-include_once dirname(__FILE__) . '/includes/media_issuu.variables.inc';
++include_once('includes/media_issuu.variables.inc');
++// include_once dirname(__FILE__) . '/includes/media_issuu.variables.inc';
+
+ /**
+  * Hooks and callbacks for integrating with Styles module for display.
+@@ -19,12 +20,14 @@ include_once dirname(__FILE__) . '/includes/media_issuu.variables.inc';
+  * this inside a module_exists('styles'). However, is that safe to do in
+  * global context? If not, is there any down side to doing it in hook_init()?
+  */
+-include_once dirname(__FILE__) . '/includes/media_issuu.styles.inc';
++include_once('includes/media_issuu.styles.inc');
++// include_once dirname(__FILE__) . '/includes/media_issuu.styles.inc';
+
+ /**
+  * Hooks and callbacks for integrating with File Entity module for display.
+  */
+-include_once dirname(__FILE__) . '/includes/media_issuu.formatters.inc';
++include_once('includes/media_issuu.formatters.inc');
++// include_once dirname(__FILE__) . '/includes/media_issuu.formatters.inc';
+
+ /**
+  * Implements hook_stream_wrappers().
+@@ -63,6 +66,26 @@ function media_issuu_theme($existing, $type, $theme, $path) {
+       'path' => $path . '/includes/themes',
+       'template' => 'media-issuu-document',
+     ),
++    'media_issuu_field_formatter_styles' => array(
++      'variables' => array('element' => NULL, 'style' => NULL),
++      'file' => 'media_issuu.theme.inc',
++      'path' => $path . '/includes/themes',
++    ),
++    'media_issuu_preview_style' => array(
++      'variables' => array('style_name' => NULL),
++      'file' => 'media_issuu.theme.inc',
++      'path' => $path . '/includes/themes',
++    ),
++    'media_issuu_embed' => array(
++      'variables' => array('style_name' => NULL, 'uri' => NULL, 'alt' => NULL, 'title' => NULL),
++      'file' => 'media_issuu.theme.inc',
++      'path' => $path . '/includes/themes',
++    ),
++    'media_issuu_styles' => array(
++      'variables' => array('element' => NULL, 'style' => NULL),
++      'file' => 'media_issuu.theme.inc',
++      'path' => $path . '/includes/themes',
++    ),
+   );
+ }
+
+@@ -81,6 +104,22 @@ function media_issuu_ctools_plugin_api($owner, $api) {
+ }
+
+ /**
++ * Implements hook_file_mimetype_mapping_alter().
++ *
++ * Regster the document/issuu mimetype.
++ */
++function media_issuu_file_mimetype_mapping_alter(&$mapping) {
++  $mapping['mimetypes'][] = 'document/issuu';
++}
++
++/**
++ * Implements hook_file_default_types_alter().
++ */
++function media_issuu_file_default_types_alter(&$types) {
++  $types['document']->mimetypes[] = 'document/issuu';
++}
++
++/**
+  * Implements hook_media_parse().
+  *
+  * @todo This hook should be deprecated. Refactor Media module to not call it
+@@ -96,6 +135,6 @@ function media_issuu_media_parse($embed_code) {
+  * Implements hook_media_format_form_prepare_alter().
+  */
+ function media_issuu_media_format_form_prepare_alter(&$form, &$form_state, $media) {
+-  $settings = array('autosubmit' => ($media->type === "other"));
++  $settings = array('autosubmit' => ($media->type === "document"));
+   drupal_add_js(array('media_format_form' => $settings), 'setting');
+ }

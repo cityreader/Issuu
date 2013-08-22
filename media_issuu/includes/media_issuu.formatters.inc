@@ -11,7 +11,7 @@ function media_issuu_file_formatter_info() {
   $formatters = array();
   $formatters['media_issuu_document'] = array(
     'label' => t('Issuu Document'),
-    'file types' => array('default'),
+    'file types' => array('document'),
     'default settings' => array(
       'width' => media_issuu_variable_get('width'),
       'height' => media_issuu_variable_get('height'),
@@ -21,7 +21,7 @@ function media_issuu_file_formatter_info() {
   );
   $formatters['media_issuu_image'] = array(
     'label' => t('Issuu Preview Image'),
-    'file types' => array('default'),
+    'file types' => array('document'),
     'default settings' => array(
       'image_style' => '',
     ),

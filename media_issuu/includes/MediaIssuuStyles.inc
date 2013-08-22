@@ -42,6 +42,7 @@ class MediaIssuuStyles extends FileStyles {
       'height' => $this->getHeight(),
       'fullscreen' => $this->getFullscreen(),
     );
+    dsm('foo');
     $this->setOutput(theme('media_issuu_document', $variables));
   }
 }

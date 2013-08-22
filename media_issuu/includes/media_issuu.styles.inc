@@ -45,13 +45,7 @@ function media_issuu_styles_containers() {
             'styles' => 'media_issuu_styles',
             'preview' => 'media_issuu_preview_style',
           ),
-          'description' => t(
-            'Issuu Styles will display embedded Issuu documents and thumbnails to your choosing, such as by resizing, setting colors. You can !manage.',
-            array(
-              '!manage' => l(
-                t('manage your Issuu styles here'),
-                'admin/config/media/media-issuu-styles'))
-          ),
+          'description' => t('Issuu Styles will display embedded Issuu documents and thumbnails to your choosing, such as by resizing, setting colors. You can !manage.', array('!manage' => l(t('manage your Issuu styles here'),'admin/config/media/media-issuu-styles'))),
         ),
       ),
     ),
@@ -132,6 +126,7 @@ function media_issuu_styles_styles() {
       ),
     ),
   );
+
   /* Allow any image style to be applied to the thumbnail. */
   foreach (image_styles() as $style_name => $image_style) {
     $styles['file']['containers']['media_issuu']['styles']['issuu_thumbnail_' . $style_name] = array(
