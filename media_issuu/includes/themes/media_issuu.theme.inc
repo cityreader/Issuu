@@ -9,36 +9,35 @@
 /**
  * Preprocess function for theme('media_issuu_document').
  */
-function media_issuu_preprocess_media_issuu_document(&$variables) {
+function template_preprocess_media_issuu_document(&$variables) {
   // Build the URL for display.
   $uri = $variables['uri'];
   $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
   $parameters = $wrapper->get_parameters();
-  $properties = $wrapper->getIssuuProperties($parameters);
   $variables['document'] = check_plain($parameters['document']);
   $variables['docs'] = check_plain($parameters['docs']);
-  $variables['id'] = $properties['documentId'];
+  $variables['id'] = $parameters['documentId'];
   $variables['configid'] = rawurldecode($parameters['configid']);
-dpm($parameters);
   $variables['wrapper_id'] = 'media_issuu_' . $variables['document'] . '_' . $variables['docs'];
 
   // For users with JavaScript, these object and embed tags will be replaced
   // by an iframe, so that we can support users without Flash.
-  $variables['output'] = <<<OUTPUT
-    <object width="{$variables['width']}" height="{$variables['height']}">
-      <param name="movie" value="http://static.issuu.com/webembed/viewers/style1/v2/IssuuReader.swf?mode=mini&amp;backgroundColor=%23222222&amp;documentId={$variables['id']}">
-      <param name="wmode" value="transparent" />
-      <embed src="http://static.issuu.com/webembed/viewers/style1/v2/IssuuReader.swf"
-             type="application/x-shockwave-flash"
-             width="{$variables['width']}" height="{$variables['height']}"
-             flashvars="mode=mini&amp;backgroundColor=%23222222&amp;documentId={$variables['id']}"/>
-    </object>
-OUTPUT;
+  // $variables['output'] = <<<OUTPUT
+    // <object width="{$variables['width']}" height="{$variables['height']}">
+      // <param name="movie" value="http://static.issuu.com/webembed/viewers/style1/v2/IssuuReader.swf?mode=mini&amp;backgroundColor=%23222222&amp;documentId={$variables['id']}">
+      // <param name="wmode" value="transparent" />
+      // <embed src="http://static.issuu.com/webembed/viewers/style1/v2/IssuuReader.swf"
+             // type="application/x-shockwave-flash"
+             // width="{$variables['width']}" height="{$variables['height']}"
+             // flashvars="mode=mini&amp;backgroundColor=%23222222&amp;documentId={$variables['id']}"/>
+    // </object>
+// OUTPUT;
 
   $variables['output'] = <<<OUTPUT
-<div data-configid="{$variables['configid']}" style="width: {$variables['width']}; height: {$variables['height']};" class="issuuembed"></div><script type="text/javascript" src="//e.issuu.com/embed.js" async="true"></script>
+<div data-configid="{$variables['configid']}" style="width: {$variables['width']}; height: {$variables['height']};" class="issuuembed"></div>
 OUTPUT;
   drupal_add_css(drupal_get_path('module', 'media_issuu') . '/css/media_issuu.css');
+  drupal_add_js('http://e.issuu.com/embed.js', 'external');
 }
 
 /**

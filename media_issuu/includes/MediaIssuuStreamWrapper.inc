@@ -47,7 +47,7 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
         break;
       }
     }
-    while ($properties || $result['more'] == FALSE);
+    while (empty($properties) || $result['more'] == TRUE);
 
     return $properties;
   }
@@ -70,8 +70,7 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
    * Get original thumbnail path.
    */
   public function getOriginalThumbnailPath() {
-    $issuu_properties = self::getIssuuProperties($this->parameters);
-    return 'http://image.issuu.com/' . $issuu_properties['documentId'] . '/jpg/page_1_thumb_large.jpg';
+    return 'http://image.issuu.com/' . $this->parameters['documentId'] . '/jpg/page_1_thumb_large.jpg';
   }
 
   /**
