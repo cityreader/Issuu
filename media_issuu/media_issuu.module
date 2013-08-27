@@ -30,6 +30,13 @@ include_once('includes/media_issuu.formatters.inc');
 // include_once dirname(__FILE__) . '/includes/media_issuu.formatters.inc';
 
 /**
+ * Implements hook_init().
+ */
+function media_issuu_init() {
+  drupal_add_js('http://e.issuu.com/embed.js', 'external');
+}
+
+/**
  * Implements hook_stream_wrappers().
  */
 function media_issuu_stream_wrappers() {
