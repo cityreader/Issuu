@@ -41,7 +41,7 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
             break;
           }
         }
-        $parameters['startIndex'] += 30;
+        $api_parameters['startIndex'] += 30;
       }
       else {
         break;
