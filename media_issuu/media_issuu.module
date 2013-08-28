@@ -33,6 +33,7 @@ include_once('includes/media_issuu.formatters.inc');
  * Implements hook_init().
  */
 function media_issuu_init() {
+//  drupal_add_css(drupal_get_path('module', 'media_issuu') . '/css/media_issuu.css');
   drupal_add_js('http://e.issuu.com/embed.js', 'external');
 }
 
