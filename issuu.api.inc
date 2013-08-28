@@ -116,7 +116,9 @@ class IssuuApi {
   public function process(IssuuApiMethod $method_obj, $parameters) {
     $parameters = $method_obj->setParameters($parameters);
     $url = $this->prepareUrl($parameters);
-        dpm($url);
+
+    watchdog('issuu', 'Request sent url: <a href="!url">!url</a>', array('!url' => $url), WATCHDOG_DEBUG);
+
     if ($response = $this->request($method_obj->getRequestType(), $url, $parameters)) {
       return $method_obj->processResponse($response);
     }
