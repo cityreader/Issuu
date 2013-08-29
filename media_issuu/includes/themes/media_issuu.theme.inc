@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+
 /**
  * @file
  * media_issuu/includes/themes/media_issuu.theme.inc
@@ -33,9 +35,14 @@ function template_preprocess_media_issuu_document(&$variables) {
     // </object>
 // OUTPUT;
 
+//  $variables['output'] = <<<OUTPUT
+//<div data-configid="{$variables['configid']}" style="width: {$variables['width']}; height: {$variables['height']};" class="issuuembed"></div>
+//OUTPUT;
+
   $variables['output'] = <<<OUTPUT
-<div data-configid="{$variables['configid']}" style="width: {$variables['width']}; height: {$variables['height']};" class="issuuembed"></div>
+<iframe src="http://issuu.com/{$variables['document']}/docs/{$variables['docs']}?mode=window&amp;viewMode=doublePage" width="{$variables['width']}" height="{$variables['height']}" frameborder="0"></iframe>
 OUTPUT;
+
   // drupal_add_css(drupal_get_path('module', 'media_issuu') . '/css/media_issuu.css');
 }
 
