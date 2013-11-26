@@ -42,12 +42,6 @@ function media_issuu_file_formatter_embed_view($file, $display, $langcode) {
       '#theme' => 'media_issuu_document',
       '#uri' => $file->uri,
     );
-//    $element['#attached']['js'][] = array(
-//      'data' => 'http://e.issuu.com/embed.js',
-//      'type' => 'external',
-//    );
-//    $element['#attached']['css'] = array(drupal_get_path('module', 'media_issuu') . '/css/media_issuu.css');
-
     foreach (array('width', 'height') as $setting) {
       $element['#' . $setting] = isset($file->override[$setting]) ? $file->override[$setting] : $display['settings'][$setting];
     }
