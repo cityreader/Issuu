@@ -63,14 +63,16 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
    * Transform URL.
    */
   public function interpolateUrl() {
-    return 'http://issuu.com/' . $this->parameters['document'] . '/docs/' . $this->parameters['docs'];
+    $url = 'issuu.com/' . $this->parameters['document'] . '/docs/' . $this->parameters['docs'];
+    return $this->getUrl($url);
   }
 
   /**
    * Get original thumbnail path.
    */
   public function getOriginalThumbnailPath() {
-    return 'http://image.issuu.com/' . $this->parameters['documentId'] . '/jpg/page_1_thumb_large.jpg';
+    $url = 'image.issuu.com/' . $this->parameters['documentId'] . '/jpg/page_1_thumb_large.jpg';
+    return $this->getUrl($url);
   }
 
   /**
@@ -84,6 +86,14 @@ class MediaIssuuStreamWrapper extends MediaReadOnlyStreamWrapper {
       @copy($this->getOriginalThumbnailPath(), $local_path);
     }
     return $local_path;
+  }
+
+
+  public function getUrl($url) {
+    global $is_https;
+    $protocal = $is_https ? 'https' : 'http';
+
+    return $protocal . '://' . $url;
   }
 }
 

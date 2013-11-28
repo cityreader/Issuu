@@ -46,7 +46,7 @@ class MediaInternetIssuuHandler extends MediaInternetBaseHandler {
         // }
       // }
       // Parse patterns[1]: url.
-      $pattern = '@issuu\.com/([^/"\&\? ]+)/docs/([^/"\&\? ]+)\?e=(\d{7}/\d{7})@i';
+      $pattern = '@issuu\.com/([^/"\&\? ]+)/docs/([^/"\&\? ]+)\?e=(\d*/\d{7})@i';
   
       watchdog('media_issuu patterns[0]', $pattern);
       preg_match($pattern, $embed_code, $matches);
